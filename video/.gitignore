@@ -141,3 +141,17 @@ zipped_video.zip
 
 #tkinterDnd2
 tkinterdnd2-master/
+
+# Ignore video files
+*.mp4
+*.avi
+*.mkv
+*.mov
+
+# Ignore model weights
+*.weights
+
+# Ignore other large binary files if necessary
+*.bin
+*.tar
+*.gz
