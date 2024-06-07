@@ -55,7 +55,7 @@ A deployable model built upon the OpenCV computer vision library for the use of 
    - After selecting the video, draw a fence on the video frame. The program will count objects crossing this fence.
 
 4. **Start detection:**
-   - Click the "Start" button. The program will process the video, detect objects, and update the table when objects cross the fence.
+   - Click the "Process Video" button. The program will process the video, detect objects, and update the table when objects cross the fence.
 
 5. **Export data:**
    - The data will be automatically tabulated into a spreadsheet located in the output directory.
