@@ -51,7 +51,7 @@ class App(Tk):
         # Function to build the threshold lines on the image
         def buildThreshold(img, thickness, origin_coords,destination_coords):
             cleanThreshold = validateThreshold(threshold_val.get())
-            if(not cleanThreshold):
+            if not cleanThreshold:
                 return False
             (dx, dy) = (destination_coords[0] - origin_coords[0], destination_coords[1] - origin_coords[1])
             len = sqrt((destination_coords[0] - origin_coords[0])**2 + (destination_coords[1] - origin_coords[1])**2)
