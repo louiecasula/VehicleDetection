@@ -13,7 +13,7 @@ class App(Tk):
         # Initialize the parent class
         super().__init__()
         # Set the window size and title
-        self.geometry("1200x700")
+        self.geometry("1200x600")
         self.title("Vehicle Detection")
         self.header = header
         self.clicked_coords = (0,0)
