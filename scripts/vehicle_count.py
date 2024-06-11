@@ -147,15 +147,15 @@ class VehicleCounter():
             # Draw counting texts in the frame
             self.draw_counting_texts(img, font_color, font_size, font_thickness)
             
-            # Draw the crossing lines? TODO: consider applying this to the fence
-            #cv2.line(img, (0, self.middle_line_position), (iw, self.middle_line_position), (255, 0, 255), 2)
-            #cv2.line(img, (0, self.middle_line_position), (iw, self.middle_line_position), (255, 0, 255), 2)
-            #cv2.line(img, (0, self.up_line_position), (iw, self.up_line_position), (0, 0, 255), 2)
-            #cv2.line(img, (0, self.down_line_position), (iw, self.down_line_position), (0, 0, 255), 2)
+            # Draw the crossing lines? TODO: Benefits of using this?
+            # cv2.line(img, (0, self.middle_line_position), (iw, self.middle_line_position), (255, 0, 255), 2)
+            # cv2.line(img, (0, self.middle_line_position), (iw, self.middle_line_position), (255, 0, 255), 2)
+            # cv2.line(img, (0, self.up_line_position), (iw, self.up_line_position), (0, 0, 255), 2)
+            # cv2.line(img, (0, self.down_line_position), (iw, self.down_line_position), (0, 0, 255), 2)
 
             # Show the frames
             cv2.imshow('Output', img)
-            if cv2.waitKey(1) == ord('q'):
+            if cv2.waitKey(1) == ord('q'):  # Press 'q' to quit program
                 break
 
         #print("Data saved at 'data.csv'")
@@ -193,49 +193,43 @@ class VehicleCounter():
         # Count vehicles as they cross the detection lines
         #print('in count-vehicle')
         x, y, w, h, id, index = box_id
+        # Find the center of the rectangle for detection
+        ix, iy = self.find_center(x, y, w, h)
 
-        # Find the center of the rectangle for detection TODO: pickup from here
-        center = self.find_center(x, y, w, h)
-        ix, iy = center
-
-        #slope =  (self.dycoord - self.oycoord) / ( self.dxcoord - self.oxcoord)
-        
-        #print("slope is", slope)
-
-        #liney = self.oycoord +  ( self.dxcoord - self.oxcoord) * (ix - self.oxcoord) /  (self.dycoord  - self.oycoord )
         slope = ( self.dycoord - self.oycoord ) / ( self.dxcoord - self.oxcoord)
         liney = ( slope * ix) - (slope * self.oxcoord) + self.oycoord
         
         #print('box x is ', ix, 'id is ', ID, 'dx is ', self.dxcoord, 'box y is ', iy, 'liney is ', liney)
         
-        if (liney > iy) and (ix > self.oxcoord) and (ix < self.dxcoord) and ( iy > self.oycoord ) and  (iy < self.dycoord ) :
-
-           print('top triangle here', 'id is ', id,' iy = ', iy , 'liney = ', liney, ' ox = ',self.oxcoord, 'dx = ', self.dxcoord)         
+        # Check if the center is in the top triangle
+        if (liney > iy) and (ix > self.oxcoord) and (ix < self.dxcoord) and (iy > self.oycoord) and (iy < self.dycoord):
+           print('top triangle here', 'id is ', id,' iy = ', iy , 'liney = ', liney, ' ox = ', self.oxcoord, 'dx = ', self.dxcoord)         
            if id not in self.temp_up_list:
                 self.temp_up_list.append(id)
                 print('added to up list')
-                
-        elif (liney < iy) and (ix > self.oxcoord) and (ix < self.dxcoord) and ( iy > self.oycoord ) and  (iy < self.dycoord ) : 
-            print('bottom triangle here', 'id is ', id,' iy = ', iy , 'liney = ', liney, ' ox = ',self.oxcoord, 'dx = ', self.dxcoord)
+
+        # Check if the center is in the bottom triangle
+        elif (liney < iy) and (ix > self.oxcoord) and (ix < self.dxcoord) and (iy > self.oycoord) and (iy < self.dycoord): 
+            print('bottom triangle here', 'id is ', id,' iy = ', iy , 'liney = ', liney, ' ox = ', self.oxcoord, 'dx = ', self.dxcoord)
             if id not in self.temp_down_list:
                 self.temp_down_list.append(id)
                 print('added to down list')
 
-
-        elif ( liney > iy  and ( iy < self.oycoord) or (ix > self.dxcoord)) :
+        # Check if the vehicle has crossed from bottom to top
+        elif (liney > iy) and ((iy < self.oycoord) or (ix > self.dxcoord)):
             #print("above")
             if id in self.temp_down_list:
                 print("an upper")
                 self.temp_down_list.remove(id)
-                self.up_list[index] = self.up_list[index]+1
+                self.up_list[index] += 1
 
- 
-        elif  (liney < iy) and  ( ( ix < self.oxcoord) or  (iy > self.dycoord)) :
+        # Check if the vehicle has crossed from top to bottom
+        elif (liney < iy) and ((ix < self.oxcoord) or (iy > self.dycoord)):
             #print("below")
             if id in self.temp_up_list:
                 print("an downer")
                 self.temp_up_list.remove(id)
-                self.down_list[index] = self.down_list[index] + 1
+                self.down_list[index] += 1
 
               
 
@@ -278,7 +272,7 @@ class VehicleCounter():
         #     print('on the line')
 
         # Draw circle in the middle of the rectangle
-        cv2.circle(img, center, 2, (0, 0, 255), -1)  # end here
+        cv2.circle(img, (ix, iy), 2, (0, 0, 255), -1)
         
 
 
