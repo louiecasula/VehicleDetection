@@ -5,7 +5,8 @@ from .tracker import EuclideanDistTracker
 
 class VehicleCounter():
     def __init__(self, file, video_dim,fps, lineDim, threshold, showVideo, theox, theoy, thedx, thedy):
-        #print(' in vehicle counter INIT')
+        # Initialize vehicle counter with the necessary parameters
+        # print(' in vehicle counter INIT')
         self.file = file
         self.video_dim = video_dim
         self.fps = fps
@@ -43,6 +44,7 @@ class VehicleCounter():
     
 
     def find_center(self, x, y, w, h):
+        # Calculate the center of a bounding box
         #print('in find_center')
         x1=int(w/2)
         y1=int(h/2)
@@ -51,7 +53,7 @@ class VehicleCounter():
         return cx, cy
 
     def postProcess(self,outputs,img):
-        # Function for finding the detected objects from the network output
+        # Process the output from the neural network to find detected objects
         #print(' in post process')
         np.random.seed(42)
         confThreshold = 0.2
@@ -87,9 +89,8 @@ class VehicleCounter():
         
         try:
                indices.flatten()
-               
-        except: NameError
-
+        except NameError:
+            pass
         else:
               for i in indices.flatten():
                    x, y, w, h = boxes[i][0], boxes[i][1], boxes[i][2], boxes[i][3]
@@ -98,10 +99,8 @@ class VehicleCounter():
                    name = classNames[classIds[i]]
                    self.detected_classNames.append(name)
                    # Draw classname and confidence score 
-            
                    cv2.putText(img,f'{name.upper()} {int(confidence_scores[i]*100)}%',
                         (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1)
-
                    # Draw bounding rectangle
                    cv2.rectangle(img, (x, y), (x + w, y + h), color, 1)
                    detection.append([x, y, w, h, self.required_class_index.index(classIds[i])])
@@ -113,133 +112,124 @@ class VehicleCounter():
                 #print (box_id) 
 
     def start(self):
+        # Start video capture and processing
         #print('in start')
         cap = cv2.VideoCapture(self.file)
         font_color = (0, 0, 255)
         font_size = 0.5
         font_thickness = 2
-        ## Model Files
+        # Model Files
         modelConfiguration = './model/yolov3-320.cfg'
         modelWeigheights = './model/yolov3-320.weights'
         
-        # configure the network model
-        net = cv2.dnn.readNetFromDarknet(modelConfiguration, modelWeigheights)
-        
-        # Configure the network backend
-        
+        # Configure the network model
+        net = cv2.dnn.readNetFromDarknet(modelConfiguration, modelWeigheights)        
         net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
         net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
+
         while True:
             success, img = cap.read()
-
             img = cv2.resize(img,(0,0),None,.5,.5)
-
             ih, iw, channels = img.shape
             blob = cv2.dnn.blobFromImage(img, 1 / 255, (320,320), [0, 0, 0], 1, crop=False)
-
             # Set the input of the network
             net.setInput(blob)
             layersNames = net.getLayerNames()
             outputNames = [(layersNames[i - 1]) for i in net.getUnconnectedOutLayers()]
             # Feed data to the network
             outputs = net.forward(outputNames)
-
             # Find the objects from the network output
             self.postProcess(outputs,img)
- 
-            #print('coords')
-            #print(self.oxcoord)
 
-            #from pt2, pt1, pt3, pt4
-            cv2.line(img, (self.oxcoord,self.oycoord), (self.dxcoord,self.dycoord), (187, 0, 255), 2)
-            cv2.line(img, (self.oxcoord,self.oycoord), (self.dxcoord,self.oycoord), (187, 0, 255), 2)
-            cv2.line(img, (self.dxcoord,self.oycoord), (self.dxcoord,self.dycoord), (187, 0, 255), 2)
-            cv2.line(img, (self.dxcoord,self.dycoord), (self.oxcoord,self.dycoord), (187, 0, 255), 2)
-            cv2.line(img, (self.oxcoord,self.dycoord), (self.oxcoord,self.oycoord), (187, 0, 255), 2)
-
-            cv2.line(img, (self.ox2coord,self.oycoord), (self.dx2coord,self.dycoord), (187, 0, 255), 2)
-            cv2.line(img, (self.ox2coord,self.oycoord), (self.dx2coord,self.oycoord), (187, 0, 255), 2)
-            cv2.line(img, (self.dx2coord,self.oycoord), (self.dx2coord,self.dycoord), (187, 0, 255), 2)
-            cv2.line(img, (self.dx2coord,self.dycoord), (self.ox2coord,self.dycoord), (187, 0, 255), 2)
-            cv2.line(img, (self.ox2coord,self.dycoord), (self.ox2coord,self.oycoord), (187, 0, 255), 2)
-            
-            # Draw the crossing lines
-            #cv2.line(img, (0, self.middle_line_position), (iw, self.middle_line_position), (255, 0, 255), 2)
-            #cv2.line(img, (0, self.middle_line_position), (iw, self.middle_line_position), (255, 0, 255), 2)
-            #cv2.line(img, (0, self.up_line_position), (iw, self.up_line_position), (0, 0, 255), 2)
-            #cv2.line(img, (0, self.down_line_position), (iw, self.down_line_position), (0, 0, 255), 2)
+            # Draw detection lines and rectangles
+            self.draw_lines(img)
 
             # Draw counting texts in the frame
-            cv2.putText(img, "Up", (110, 20), cv2.FONT_HERSHEY_SIMPLEX, font_size, font_color, font_thickness)
-            cv2.putText(img, "Down", (160, 20), cv2.FONT_HERSHEY_SIMPLEX, font_size, font_color, font_thickness)
-            cv2.putText(img, "Up2", (210, 20), cv2.FONT_HERSHEY_SIMPLEX, font_size, font_color, font_thickness)
-            cv2.putText(img, "Down2", (260, 20), cv2.FONT_HERSHEY_SIMPLEX, font_size, font_color, font_thickness)
+            self.draw_counting_texts(img, font_color, font_size, font_thickness)
             
-            cv2.putText(img, "Car:        "+str(self.up_list[0])+"     "+ str(self.down_list[0])+"     "+ str(self.up_list[0])+"     "+ str(self.down_list[0]), (20, 40), cv2.FONT_HERSHEY_SIMPLEX, font_size, font_color, font_thickness)
-            cv2.putText(img, "Motorbike:  "+str(self.up_list[1])+"     "+ str(self.down_list[1])+"     "+ str(self.up_list[1])+"     "+ str(self.down_list[1]) , (20, 60), cv2.FONT_HERSHEY_SIMPLEX, font_size, font_color, font_thickness)
-            cv2.putText(img, "Bus:        "+str(self.up_list[2])+"     "+ str(self.down_list[2])+"     "+ str(self.up_list[2])+"     "+ str(self.down_list[2]) , (20, 80), cv2.FONT_HERSHEY_SIMPLEX, font_size, font_color, font_thickness)
-            cv2.putText(img, "Truck:      "+str(self.up_list[3])+"     "+ str(self.down_list[3])+"     "+ str(self.up_list[3])+"     "+ str(self.down_list[3]) , (20, 100), cv2.FONT_HERSHEY_SIMPLEX, font_size, font_color, font_thickness)
+            # Draw the crossing lines? TODO: Benefits of using this?
+            # cv2.line(img, (0, self.middle_line_position), (iw, self.middle_line_position), (255, 0, 255), 2)
+            # cv2.line(img, (0, self.middle_line_position), (iw, self.middle_line_position), (255, 0, 255), 2)
+            # cv2.line(img, (0, self.up_line_position), (iw, self.up_line_position), (0, 0, 255), 2)
+            # cv2.line(img, (0, self.down_line_position), (iw, self.down_line_position), (0, 0, 255), 2)
 
             # Show the frames
             cv2.imshow('Output', img)
-
-
-
-            if cv2.waitKey(1) == ord('q'):
+            if cv2.waitKey(1) == ord('q'):  # Press 'q' to quit program
                 break
 
-
         #print("Data saved at 'data.csv'")
-        # Finally realese the capture object and destroy all active windows
+        # Release the capture object and destroy all active windows
         cap.release()
         cv2.destroyAllWindows()
 
-    def count_vehicle(self,box_id, img):
+    def draw_lines(self, img):
+        # Draw detection lines and rectangles
+        cv2.line(img, (self.oxcoord,self.oycoord), (self.dxcoord,self.dycoord), (187, 0, 255), 2)
+        cv2.line(img, (self.oxcoord,self.oycoord), (self.dxcoord,self.oycoord), (187, 0, 255), 2)
+        cv2.line(img, (self.dxcoord,self.oycoord), (self.dxcoord,self.dycoord), (187, 0, 255), 2)
+        cv2.line(img, (self.dxcoord,self.dycoord), (self.oxcoord,self.dycoord), (187, 0, 255), 2)
+        cv2.line(img, (self.oxcoord,self.dycoord), (self.oxcoord,self.oycoord), (187, 0, 255), 2)
+
+        cv2.line(img, (self.ox2coord,self.oycoord), (self.dx2coord,self.dycoord), (187, 0, 255), 2)
+        cv2.line(img, (self.ox2coord,self.oycoord), (self.dx2coord,self.oycoord), (187, 0, 255), 2)
+        cv2.line(img, (self.dx2coord,self.oycoord), (self.dx2coord,self.dycoord), (187, 0, 255), 2)
+        cv2.line(img, (self.dx2coord,self.dycoord), (self.ox2coord,self.dycoord), (187, 0, 255), 2)
+        cv2.line(img, (self.ox2coord,self.dycoord), (self.ox2coord,self.oycoord), (187, 0, 255), 2)
+
+    def draw_counting_texts(self, img, font_color, font_size, font_thickness):
+        # Draw counting texts in the frame
+        cv2.putText(img, "Up", (110, 20), cv2.FONT_HERSHEY_SIMPLEX, font_size, font_color, font_thickness)
+        cv2.putText(img, "Down", (160, 20), cv2.FONT_HERSHEY_SIMPLEX, font_size, font_color, font_thickness)
+        cv2.putText(img, "Up2", (210, 20), cv2.FONT_HERSHEY_SIMPLEX, font_size, font_color, font_thickness)
+        cv2.putText(img, "Down2", (260, 20), cv2.FONT_HERSHEY_SIMPLEX, font_size, font_color, font_thickness)
+        
+        cv2.putText(img, "Car:        "+str(self.up_list[0])+"     "+ str(self.down_list[0])+"     "+ str(self.up_list[0])+"     "+ str(self.down_list[0]), (20, 40), cv2.FONT_HERSHEY_SIMPLEX, font_size, font_color, font_thickness)
+        cv2.putText(img, "Motorbike:  "+str(self.up_list[1])+"     "+ str(self.down_list[1])+"     "+ str(self.up_list[1])+"     "+ str(self.down_list[1]) , (20, 60), cv2.FONT_HERSHEY_SIMPLEX, font_size, font_color, font_thickness)
+        cv2.putText(img, "Bus:        "+str(self.up_list[2])+"     "+ str(self.down_list[2])+"     "+ str(self.up_list[2])+"     "+ str(self.down_list[2]) , (20, 80), cv2.FONT_HERSHEY_SIMPLEX, font_size, font_color, font_thickness)
+        cv2.putText(img, "Truck:      "+str(self.up_list[3])+"     "+ str(self.down_list[3])+"     "+ str(self.up_list[3])+"     "+ str(self.down_list[3]) , (20, 100), cv2.FONT_HERSHEY_SIMPLEX, font_size, font_color, font_thickness)
+
+    def count_vehicle(self, box_id, img):
+        # Count vehicles as they cross the detection lines
         #print('in count-vehicle')
         x, y, w, h, id, index = box_id
-
         # Find the center of the rectangle for detection
-        center = self.find_center(x, y, w, h)
-        ix, iy = center
+        ix, iy = self.find_center(x, y, w, h)
 
-        #slope =  (self.dycoord - self.oycoord) / ( self.dxcoord - self.oxcoord)
-        
-        #print("slope is", slope)
-
-        #liney = self.oycoord +  ( self.dxcoord - self.oxcoord) * (ix - self.oxcoord) /  (self.dycoord  - self.oycoord )
         slope = ( self.dycoord - self.oycoord ) / ( self.dxcoord - self.oxcoord)
         liney = ( slope * ix) - (slope * self.oxcoord) + self.oycoord
         
         #print('box x is ', ix, 'id is ', ID, 'dx is ', self.dxcoord, 'box y is ', iy, 'liney is ', liney)
         
-        if (liney > iy) and (ix > self.oxcoord) and (ix < self.dxcoord) and ( iy > self.oycoord ) and  (iy < self.dycoord ) :
-
-           print('top triangle here', 'id is ', id,' iy = ', iy , 'liney = ', liney, ' ox = ',self.oxcoord, 'dx = ', self.dxcoord)         
+        # Check if the center is in the top triangle
+        if (liney > iy) and (ix > self.oxcoord) and (ix < self.dxcoord) and (iy > self.oycoord) and (iy < self.dycoord):
+           print('top triangle here', 'id is ', id,' iy = ', iy , 'liney = ', liney, ' ox = ', self.oxcoord, 'dx = ', self.dxcoord)         
            if id not in self.temp_up_list:
                 self.temp_up_list.append(id)
                 print('added to up list')
-                
-        elif (liney < iy) and (ix > self.oxcoord) and (ix < self.dxcoord) and ( iy > self.oycoord ) and  (iy < self.dycoord ) : 
-            print('bottom triangle here', 'id is ', id,' iy = ', iy , 'liney = ', liney, ' ox = ',self.oxcoord, 'dx = ', self.dxcoord)
+
+        # Check if the center is in the bottom triangle
+        elif (liney < iy) and (ix > self.oxcoord) and (ix < self.dxcoord) and (iy > self.oycoord) and (iy < self.dycoord): 
+            print('bottom triangle here', 'id is ', id,' iy = ', iy , 'liney = ', liney, ' ox = ', self.oxcoord, 'dx = ', self.dxcoord)
             if id not in self.temp_down_list:
                 self.temp_down_list.append(id)
                 print('added to down list')
 
-
-        elif ( liney > iy  and ( iy < self.oycoord) or (ix > self.dxcoord)) :
+        # Check if the vehicle has crossed from bottom to top
+        elif (liney > iy) and ((iy < self.oycoord) or (ix > self.dxcoord)):
             #print("above")
             if id in self.temp_down_list:
                 print("an upper")
                 self.temp_down_list.remove(id)
-                self.up_list[index] = self.up_list[index]+1
+                self.up_list[index] += 1
 
- 
-        elif  (liney < iy) and  ( ( ix < self.oxcoord) or  (iy > self.dycoord)) :
+        # Check if the vehicle has crossed from top to bottom
+        elif (liney < iy) and ((ix < self.oxcoord) or (iy > self.dycoord)):
             #print("below")
             if id in self.temp_up_list:
                 print("an downer")
                 self.temp_up_list.remove(id)
-                self.down_list[index] = self.down_list[index] + 1
+                self.down_list[index] += 1
 
               
 
@@ -282,7 +272,7 @@ class VehicleCounter():
         #     print('on the line')
 
         # Draw circle in the middle of the rectangle
-        cv2.circle(img, center, 2, (0, 0, 255), -1)  # end here
+        cv2.circle(img, (ix, iy), 2, (0, 0, 255), -1)
         
 
 

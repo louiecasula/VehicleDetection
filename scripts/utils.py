@@ -1,8 +1,7 @@
 from asyncio.windows_events import NULL
 
-
 def validateThreshold(str):
-    castedInt = int(str,10)
-    if(castedInt < 0 or castedInt > 30):
-      return False
-    return castedInt
+    casted_int = int(str, 10)  # Convert the string to an integer
+    if 0 <= casted_int <= 30:  # Check if the integer is within the valid range
+      return casted_int
+    return False
