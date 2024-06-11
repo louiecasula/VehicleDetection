@@ -56,6 +56,7 @@ A deployable model built upon the OpenCV library for the use of classifying vehi
 
 4. **Start detection:**
    - Click the "Process Video" button. The program will process the video, detect objects, and update the table when objects cross the fence.
+   - Press 'q' to quit processing video.
 
 5. **Export data:**
    - The data will be automatically tabulated into a spreadsheet located in the output directory.
