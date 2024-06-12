@@ -39,7 +39,6 @@ class App(Tk):
             showVideo = True
             video_dim = (200,200)
             fps = 30
-            #fps = 90             
             cleanThreshold = validateThreshold(threshold_val.get())
             if(not cleanThreshold):
                 return False
@@ -131,9 +130,7 @@ class App(Tk):
             success,image = cap.read()
             if success:
                 # Resize the image for display
-                # image = cv2.resize(image, (500, 380))
-                # image = cv2.resize(image, (682, 384))
-                image = cv2.resize(image,(0,0),None,.5,.5)  
+                image = cv2.resize(image,(0,0),None,.5,.5)
                 self.set_raw_image(image)
                 img = Image.fromarray(image)
                 imgtk = ImageTk.PhotoImage(image=img)
