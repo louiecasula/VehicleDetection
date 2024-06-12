@@ -10,7 +10,7 @@ class EuclideanDistTracker:
         self.id_count = 0  # Counter to assign unique IDs to new objects
 
 
-    def update(self, objects_rect):
+    def update(self, objects_rect: list) -> list:
         """
         Updates the tracker with the current frame's detected object bounding boxes.
 
@@ -42,7 +42,7 @@ class EuclideanDistTracker:
                     break
 
             # If it's a new object, assign a new ID
-            if same_object_detected is False:
+            if not same_object_detected:
                 self.center_points[self.id_count] = (cx, cy)
                 objects_bbs_ids.append([x, y, w, h, self.id_count, index])
                 self.id_count += 1
