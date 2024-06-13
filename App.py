@@ -119,10 +119,10 @@ class App(Tk):
             title='Open a file',
             initialdir='./rawVideo',
             filetypes = (
+                ('all files','*'),
                 ('mp4 files', '*.mp4'),
                 ('wav files', '*.wav*'),
                 ('avi files','*.avi'),
-                ('all files','*')
             )
             )
             input_video_val.insert(0,filename.name.replace('/', '\\'))
