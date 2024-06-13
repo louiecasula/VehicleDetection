@@ -35,17 +35,9 @@ class VehicleCounter():
         self.oy2coord = 140
         self.dx2coord = 539
         self.dy2coord = 206
-        #self.ox2coord = theox2
-        #self.oy2coord = theoy2
-        #self.dx2coord = thedx2
-        #self.dy2coord = thedy2
-        #print('printing the x')
-        #print(self.oxcoord)
-    
 
     def find_center(self, x, y, w, h):
         # Calculate the center of a bounding box
-        #print('in find_center')
         x1=int(w/2)
         y1=int(h/2)
         cx = x+x1
@@ -54,7 +46,6 @@ class VehicleCounter():
 
     def postProcess(self,outputs,img):
         # Process the output from the neural network to find detected objects
-        #print(' in post process')
         np.random.seed(42)
         confThreshold = 0.2
         nmsThreshold = 0.2
@@ -62,8 +53,6 @@ class VehicleCounter():
         classNames = open(classesFile).read().strip().split('\n')
         colors = np.random.randint(0, 255, size=(len(classNames), 3), dtype='uint8')
         height, width = img.shape[:2]
-        #print('heigt width')
-        #print(height, width)
         boxes = []
         classIds = []
         confidence_scores = []
@@ -76,7 +65,6 @@ class VehicleCounter():
                 confidence = scores[classId]
                 if classId in self.required_class_index:
                     if confidence > confThreshold:
-                        # print(classId)
                         w,h = int(det[2]*width) , int(det[3]*height)
                         x,y = int((det[0]*width)-w/2) , int((det[1]*height)-h/2)
                         boxes.append([x,y,w,h])
@@ -85,7 +73,6 @@ class VehicleCounter():
 
         # Apply Non-Max Suppression
         indices = cv2.dnn.NMSBoxes(boxes, confidence_scores, confThreshold, nmsThreshold)
-        #print('the indice is ', indices)
         
         try:
                indices.flatten()
@@ -94,7 +81,6 @@ class VehicleCounter():
         else:
               for i in indices.flatten():
                    x, y, w, h = boxes[i][0], boxes[i][1], boxes[i][2], boxes[i][3]
-                   #print('the indiceXX is ', indices)
                    color = [int(c) for c in colors[classIds[i]]]
                    name = classNames[classIds[i]]
                    self.detected_classNames.append(name)
@@ -109,11 +95,9 @@ class VehicleCounter():
         boxes_ids = self.tracker.update(detection)
         for box_id in boxes_ids:
                 self.count_vehicle(box_id, img)
-                #print (box_id) 
 
     def start(self):
         # Start video capture and processing
-        #print('in start')
         cap = cv2.VideoCapture(self.file)
         font_color = (0, 0, 255)
         font_size = 0.5
@@ -191,16 +175,13 @@ class VehicleCounter():
 
     def count_vehicle(self, box_id, img):
         # Count vehicles as they cross the detection lines
-        #print('in count-vehicle')
         x, y, w, h, id, index = box_id
         # Find the center of the rectangle for detection
         ix, iy = self.find_center(x, y, w, h)
 
         slope = ( self.dycoord - self.oycoord ) / ( self.dxcoord - self.oxcoord)
         liney = ( slope * ix) - (slope * self.oxcoord) + self.oycoord
-        
-        #print('box x is ', ix, 'id is ', ID, 'dx is ', self.dxcoord, 'box y is ', iy, 'liney is ', liney)
-        
+                
         # Check if the center is in the top triangle
         if (liney > iy) and (ix > self.oxcoord) and (ix < self.dxcoord) and (iy > self.oycoord) and (iy < self.dycoord):
            print('top triangle here', 'id is ', id,' iy = ', iy , 'liney = ', liney, ' ox = ', self.oxcoord, 'dx = ', self.dxcoord)         
