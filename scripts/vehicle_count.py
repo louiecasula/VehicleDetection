@@ -74,22 +74,23 @@ class VehicleCounter():
         # Apply Non-Max Suppression
         indices = cv2.dnn.NMSBoxes(boxes, confidence_scores, confThreshold, nmsThreshold)
         
-        try:
-               indices.flatten()
-        except NameError:
-            pass
-        else:
-              for i in indices.flatten():
-                   x, y, w, h = boxes[i][0], boxes[i][1], boxes[i][2], boxes[i][3]
-                   color = [int(c) for c in colors[classIds[i]]]
-                   name = classNames[classIds[i]]
-                   self.detected_classNames.append(name)
-                   # Draw classname and confidence score 
-                   cv2.putText(img,f'{name.upper()} {int(confidence_scores[i]*100)}%',
+        if len(indices) > 0:
+            try:
+                indices.flatten()
+            except NameError:
+                pass
+            else:
+                for i in indices.flatten():
+                    x, y, w, h = boxes[i][0], boxes[i][1], boxes[i][2], boxes[i][3]
+                    color = [int(c) for c in colors[classIds[i]]]
+                    name = classNames[classIds[i]]
+                    self.detected_classNames.append(name)
+                    # Draw classname and confidence score 
+                    cv2.putText(img,f'{name.upper()} {int(confidence_scores[i]*100)}%',
                         (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1)
-                   # Draw bounding rectangle
-                   cv2.rectangle(img, (x, y), (x + w, y + h), color, 1)
-                   detection.append([x, y, w, h, self.required_class_index.index(classIds[i])])
+                    # Draw bounding rectangle
+                    cv2.rectangle(img, (x, y), (x + w, y + h), color, 1)
+                    detection.append([x, y, w, h, self.required_class_index.index(classIds[i])])
 
         # Update the tracker for each object
         boxes_ids = self.tracker.update(detection)
@@ -111,9 +112,10 @@ class VehicleCounter():
         net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
         net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
 
+        # Resize video for processing
         while True:
             success, img = cap.read()
-            img = cv2.resize(img,(0,0),None,.5,.5)
+            img = cv2.resize(img,(0,0),None,.5,.5)  # TODO: pass video resize options as parameter in GUI
             ih, iw, channels = img.shape
             blob = cv2.dnn.blobFromImage(img, 1 / 255, (320,320), [0, 0, 0], 1, crop=False)
             # Set the input of the network
