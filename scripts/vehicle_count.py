@@ -35,14 +35,11 @@ class VehicleCounter():
         self.oy2coord = 140
         self.dx2coord = 539
         self.dy2coord = 206
+        self.crossing_data = []
 
     def find_center(self, x, y, w, h):
         # Calculate the center of a bounding box
-        x1=int(w/2)
-        y1=int(h/2)
-        cx = x+x1
-        cy=y+y1
-        return cx, cy
+        return (x + w // 2, y + h // 2)
 
     def postProcess(self,outputs,img):
         # Process the output from the neural network to find detected objects
