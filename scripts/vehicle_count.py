@@ -141,7 +141,26 @@ class VehicleCounter():
             if cv2.waitKey(1) == ord('q'):  # Press 'q' to quit program
                 break
 
-        #print("Data saved at 'data.csv'")
+        # Save data to a csv
+        with open("./output/data.csv", 'w') as f1:
+            cwriter = csv.writer(f1)
+            cwriter.writerow(['Direction', 'car', 'motorbike', 'bus', 'truck'])
+            self.up_list.insert(0, "Up")
+            self.down_list.insert(0, "Down")
+            cwriter.writerow(self.up_list)
+            cwriter.writerow(self.down_list)
+        f1.close()
+        print("Data saved at 'data.csv'")
+
+        # Save data to a csv RACCA style
+        keys = ['entry_time', 'fence_id', 'object_id', 'object_type', 'direction']
+        with open("./output/data1.csv", 'w', newline='') as out:
+            dict_writer = csv.DictWriter(out, fieldnames=keys)
+            dict_writer.writeheader()
+            dict_writer.writerows(self.crossing_data)
+        out.close()
+        print("Data saved at 'data1.csv'")
+
         # Release the capture object and destroy all active windows
         cap.release()
         cv2.destroyAllWindows()
@@ -186,6 +205,14 @@ class VehicleCounter():
            print('top triangle here', 'id is ', id,' iy = ', iy , 'liney = ', liney, ' ox = ', self.oxcoord, 'dx = ', self.dxcoord)         
            if id not in self.temp_up_list:
                 self.temp_up_list.append(id)
+                crossing_info = {
+                    'entry_time': 'NOW',  # TODO: Figure out a solution for timestamp. Extrapolate or use relative?
+                    'fence_id': 'fence_1',
+                    'object_id': id,
+                    'object_type': index,
+                    'direction': 'up'
+                }
+                self.crossing_data.append(crossing_info)
                 print('added to up list')
 
         # Check if the center is in the bottom triangle
@@ -193,6 +220,14 @@ class VehicleCounter():
             print('bottom triangle here', 'id is ', id,' iy = ', iy , 'liney = ', liney, ' ox = ', self.oxcoord, 'dx = ', self.dxcoord)
             if id not in self.temp_down_list:
                 self.temp_down_list.append(id)
+                crossing_info = {
+                    'entry_time': 'NOW',  # TODO: Figure out a solution for timestamp. Extrapolate or use relative?
+                    'fence_id': 'fence_1',
+                    'object_id': id,
+                    'object_type': index,
+                    'direction': 'down'
+                }
+                self.crossing_data.append(crossing_info)
                 print('added to down list')
 
         # Check if the vehicle has crossed from bottom to top
