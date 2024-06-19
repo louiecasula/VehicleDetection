@@ -33,10 +33,6 @@ class VehicleCounter():
         self.oycoord = theoy
         self.dxcoord = thedx
         self.dycoord = thedy
-        self.ox2coord = 389
-        self.oy2coord = 140
-        self.dx2coord = 539
-        self.dy2coord = 206
         self.crossing_data = []
 
     def find_center(self, x, y, w, h):
@@ -174,12 +170,6 @@ class VehicleCounter():
         cv2.line(img, (self.dxcoord,self.oycoord), (self.dxcoord,self.dycoord), (187, 0, 255), 2)
         cv2.line(img, (self.dxcoord,self.dycoord), (self.oxcoord,self.dycoord), (187, 0, 255), 2)
         cv2.line(img, (self.oxcoord,self.dycoord), (self.oxcoord,self.oycoord), (187, 0, 255), 2)
-
-        cv2.line(img, (self.ox2coord,self.oycoord), (self.dx2coord,self.dycoord), (187, 0, 255), 2)
-        cv2.line(img, (self.ox2coord,self.oycoord), (self.dx2coord,self.oycoord), (187, 0, 255), 2)
-        cv2.line(img, (self.dx2coord,self.oycoord), (self.dx2coord,self.dycoord), (187, 0, 255), 2)
-        cv2.line(img, (self.dx2coord,self.dycoord), (self.ox2coord,self.dycoord), (187, 0, 255), 2)
-        cv2.line(img, (self.ox2coord,self.dycoord), (self.ox2coord,self.oycoord), (187, 0, 255), 2)
 
     def draw_counting_texts(self, img, font_color, font_size, font_thickness):
         # Draw counting texts in the frame
