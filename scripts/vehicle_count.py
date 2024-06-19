@@ -3,6 +3,8 @@ import csv
 import numpy as np
 from .tracker import EuclideanDistTracker
 
+vehicles = ['car', 'motorbike', 'bus', 'truck']
+
 class VehicleCounter():
     def __init__(self, file, video_dim,fps, lineDim, threshold, showVideo, theox, theoy, thedx, thedy):
         # Initialize vehicle counter with the necessary parameters
@@ -201,34 +203,21 @@ class VehicleCounter():
         liney = ( slope * ix) - (slope * self.oxcoord) + self.oycoord
                 
         # Check if the center is in the top triangle
+        direction = ""
+
         if (liney > iy) and (ix > self.oxcoord) and (ix < self.dxcoord) and (iy > self.oycoord) and (iy < self.dycoord):
            print('top triangle here', 'id is ', id,' iy = ', iy , 'liney = ', liney, ' ox = ', self.oxcoord, 'dx = ', self.dxcoord)         
            if id not in self.temp_up_list:
                 self.temp_up_list.append(id)
-                crossing_info = {
-                    'entry_time': 'NOW',  # TODO: Figure out a solution for timestamp. Extrapolate or use relative?
-                    'fence_id': 'fence_1',
-                    'object_id': id,
-                    'object_type': index,
-                    'direction': 'up'
-                }
-                self.crossing_data.append(crossing_info)
-                print('added to up list')
+                direction = "up"
+
 
         # Check if the center is in the bottom triangle
         elif (liney < iy) and (ix > self.oxcoord) and (ix < self.dxcoord) and (iy > self.oycoord) and (iy < self.dycoord): 
             print('bottom triangle here', 'id is ', id,' iy = ', iy , 'liney = ', liney, ' ox = ', self.oxcoord, 'dx = ', self.dxcoord)
             if id not in self.temp_down_list:
                 self.temp_down_list.append(id)
-                crossing_info = {
-                    'entry_time': 'NOW',  # TODO: Figure out a solution for timestamp. Extrapolate or use relative?
-                    'fence_id': 'fence_1',
-                    'object_id': id,
-                    'object_type': index,
-                    'direction': 'down'
-                }
-                self.crossing_data.append(crossing_info)
-                print('added to down list')
+                direction = "down"
 
         # Check if the vehicle has crossed from bottom to top
         elif (liney > iy) and ((iy < self.oycoord) or (ix > self.dxcoord)):
@@ -246,7 +235,16 @@ class VehicleCounter():
                 self.temp_up_list.remove(id)
                 self.down_list[index] += 1
 
-              
+        if direction:
+            crossing_payload = {
+                'entry_time': 'NOW',  # TODO: Figure out a solution for timestamp. Extrapolate or use relative?
+                'fence_id': 'fence_1',  # TODO: Add field for this once multiple fences can be added.
+                'object_id': id,
+                'object_type': vehicles[index],
+                'direction': direction
+            }
+            self.crossing_data.append(crossing_payload)
+            print('added to up list')
 
         # Find the current position of the vehicle
         #    car is below upline and car is above middleline
