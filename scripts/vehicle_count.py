@@ -2,6 +2,7 @@ import cv2
 import csv
 import numpy as np
 import datetime
+from collections import defaultdict
 from .tracker import EuclideanDistTracker
 
 vehicles = ['car', 'motorbike', 'bus', 'truck']
@@ -33,7 +34,7 @@ class VehicleCounter():
         self.oycoord = oycoord
         self.dxcoord = dxcoord
         self.dycoord = dycoord
-        self.crossing_data = []
+        self.crossing_data = defaultdict(dict)
 
     def find_center(self, x, y, w, h):
         # Calculate the center of a bounding box
@@ -149,7 +150,7 @@ class VehicleCounter():
         with open("./output/data1.csv", 'w', newline='') as out:
             dict_writer = csv.DictWriter(out, fieldnames=keys)
             dict_writer.writeheader()
-            dict_writer.writerows(self.crossing_data)
+            dict_writer.writerows(self.crossing_data.values())
         out.close()
         print("Data saved at 'data1.csv'")
 
@@ -205,7 +206,7 @@ class VehicleCounter():
                 'object_type': vehicles[index],
                 'direction': direction
             }
-            self.crossing_data.append(crossing_payload)
+            self.crossing_data[id] = crossing_payload
             print('added to up list')
 
         # Check if the vehicle has crossed from bottom to top
