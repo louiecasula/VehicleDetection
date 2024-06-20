@@ -7,7 +7,7 @@ from .tracker import EuclideanDistTracker
 vehicles = ['car', 'motorbike', 'bus', 'truck']
 
 class VehicleCounter():
-    def __init__(self, file, video_dim,fps, lineDim, threshold, showVideo, theox, theoy, thedx, thedy):
+    def __init__(self, file, video_dim, fps, lineDim, threshold, showVideo, oxcoord, oycoord, dxcoord, dycoord):
         # Initialize vehicle counter with the necessary parameters
         self.file = file
         self.video_dim = video_dim
@@ -29,10 +29,10 @@ class VehicleCounter():
         self.down_list = [0, 0, 0, 0]
         self.up_list2 = [0, 0, 0, 0]
         self.down_list2 = [0, 0, 0, 0]
-        self.oxcoord = theox
-        self.oycoord = theoy
-        self.dxcoord = thedx
-        self.dycoord = thedy
+        self.oxcoord = oxcoord
+        self.oycoord = oycoord
+        self.dxcoord = dxcoord
+        self.dycoord = dycoord
         self.crossing_data = []
 
     def find_center(self, x, y, w, h):
@@ -158,24 +158,18 @@ class VehicleCounter():
         cv2.destroyAllWindows()
 
     def draw_lines(self, img):
-        # Draw detection lines and rectangles
+        # Draw detection line
         cv2.line(img, (self.oxcoord,self.oycoord), (self.dxcoord,self.dycoord), (187, 0, 255), 2)
-        cv2.line(img, (self.oxcoord,self.oycoord), (self.dxcoord,self.oycoord), (187, 0, 255), 2)
-        cv2.line(img, (self.dxcoord,self.oycoord), (self.dxcoord,self.dycoord), (187, 0, 255), 2)
-        cv2.line(img, (self.dxcoord,self.dycoord), (self.oxcoord,self.dycoord), (187, 0, 255), 2)
-        cv2.line(img, (self.oxcoord,self.dycoord), (self.oxcoord,self.oycoord), (187, 0, 255), 2)
 
     def draw_counting_texts(self, img, font_color, font_size, font_thickness):
         # Draw counting texts in the frame
         cv2.putText(img, "Up", (110, 20), cv2.FONT_HERSHEY_SIMPLEX, font_size, font_color, font_thickness)
         cv2.putText(img, "Down", (160, 20), cv2.FONT_HERSHEY_SIMPLEX, font_size, font_color, font_thickness)
-        cv2.putText(img, "Up2", (210, 20), cv2.FONT_HERSHEY_SIMPLEX, font_size, font_color, font_thickness)
-        cv2.putText(img, "Down2", (260, 20), cv2.FONT_HERSHEY_SIMPLEX, font_size, font_color, font_thickness)
         
-        cv2.putText(img, "Car:        "+str(self.up_list[0])+"     "+ str(self.down_list[0])+"     "+ str(self.up_list[0])+"     "+ str(self.down_list[0]), (20, 40), cv2.FONT_HERSHEY_SIMPLEX, font_size, font_color, font_thickness)
-        cv2.putText(img, "Motorbike:  "+str(self.up_list[1])+"     "+ str(self.down_list[1])+"     "+ str(self.up_list[1])+"     "+ str(self.down_list[1]) , (20, 60), cv2.FONT_HERSHEY_SIMPLEX, font_size, font_color, font_thickness)
-        cv2.putText(img, "Bus:        "+str(self.up_list[2])+"     "+ str(self.down_list[2])+"     "+ str(self.up_list[2])+"     "+ str(self.down_list[2]) , (20, 80), cv2.FONT_HERSHEY_SIMPLEX, font_size, font_color, font_thickness)
-        cv2.putText(img, "Truck:      "+str(self.up_list[3])+"     "+ str(self.down_list[3])+"     "+ str(self.up_list[3])+"     "+ str(self.down_list[3]) , (20, 100), cv2.FONT_HERSHEY_SIMPLEX, font_size, font_color, font_thickness)
+        cv2.putText(img, "Car:        "+str(self.up_list[0])+"     "+ str(self.down_list[0]), (20, 40), cv2.FONT_HERSHEY_SIMPLEX, font_size, font_color, font_thickness)
+        cv2.putText(img, "Motorbike:  "+str(self.up_list[1])+"     "+ str(self.down_list[1]), (20, 60), cv2.FONT_HERSHEY_SIMPLEX, font_size, font_color, font_thickness)
+        cv2.putText(img, "Bus:        "+str(self.up_list[2])+"     "+ str(self.down_list[2]), (20, 80), cv2.FONT_HERSHEY_SIMPLEX, font_size, font_color, font_thickness)
+        cv2.putText(img, "Truck:      "+str(self.up_list[3])+"     "+ str(self.down_list[3]), (20, 100), cv2.FONT_HERSHEY_SIMPLEX, font_size, font_color, font_thickness)
 
     def count_vehicle(self, box_id, img):
         # Count vehicles as they cross the detection lines
