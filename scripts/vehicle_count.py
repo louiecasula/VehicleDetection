@@ -1,6 +1,7 @@
 import cv2
 import csv
 import numpy as np
+import datetime
 from .tracker import EuclideanDistTracker
 
 vehicles = ['car', 'motorbike', 'bus', 'truck']
@@ -194,6 +195,7 @@ class VehicleCounter():
                 
         # Check if the center is in the top triangle
         direction = ""
+        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
 
         if (liney > iy) and (ix > self.oxcoord) and (ix < self.dxcoord) and (iy > self.oycoord) and (iy < self.dycoord):
            print('top triangle here', 'id is ', id,' iy = ', iy , 'liney = ', liney, ' ox = ', self.oxcoord, 'dx = ', self.dxcoord)         
@@ -227,7 +229,7 @@ class VehicleCounter():
 
         if direction:
             crossing_payload = {
-                'entry_time': 'NOW',  # TODO: Figure out a solution for timestamp. Extrapolate or use relative?
+                'entry_time': current_time,  # TODO: Figure out how to grab timestamp from video (frame?)
                 'fence_id': 'fence_1',  # TODO: Add field for this once multiple fences can be added.
                 'object_id': id,
                 'object_type': vehicles[index],
