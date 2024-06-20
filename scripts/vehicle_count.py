@@ -142,7 +142,7 @@ class VehicleCounter():
         # Save data to a csv
         with open("./output/data.csv", 'w') as f1:
             cwriter = csv.writer(f1)
-            cwriter.writerow(['Direction', 'car', 'motorbike', 'bus', 'truck'])
+            cwriter.writerow(['Direction'] + vehicles)
             self.up_list.insert(0, "Up")
             self.down_list.insert(0, "Down")
             cwriter.writerow(self.up_list)
