@@ -185,18 +185,28 @@ class VehicleCounter():
                 
         # Check if the center is in the top triangle
         direction = ""
-        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         if cross_product > 0:
             # Vehicle is on one side of the line
             if id not in self.temp_up_list:
                 self.temp_up_list.append(id)
-                direction = "up"
         elif cross_product < 0:
             # Vehicle is on the other side of the line
             if id not in self.temp_down_list:
                 self.temp_down_list.append(id)
-                direction = "down"
+
+        # Check if the vehicle has crossed from bottom to top
+        if id in self.temp_down_list and cross_product > 0:
+            self.temp_down_list.remove(id)
+            self.up_list[index] += 1
+            direction = "up"
+        
+        # Check if the vehicle has crossed from top to bottom
+        if id in self.temp_up_list and cross_product < 0:
+            self.temp_up_list.remove(id)
+            self.down_list[index] += 1
+            direction = "down"
 
         if direction:
             crossing_payload = {
@@ -207,17 +217,7 @@ class VehicleCounter():
                 'direction': direction
             }
             self.crossing_data[id] = crossing_payload
-            print('added to up list')
-
-        # Check if the vehicle has crossed from bottom to top
-        if id in self.temp_down_list and cross_product > 0:
-            self.temp_down_list.remove(id)
-            self.up_list[index] += 1
-        
-        # Check if the vehicle has crossed from top to bottom
-        if id in self.temp_up_list and cross_product < 0:
-            self.temp_up_list.remove(id)
-            self.down_list[index] += 1
+            print(crossing_payload)
 
         # Draw circle in the middle of the rectangle
         cv2.circle(img, (ix, iy), 2, (0, 0, 255), -1)
