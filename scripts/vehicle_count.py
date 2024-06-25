@@ -135,7 +135,7 @@ class VehicleCounter():
                 break
 
         # Save data to a csv
-        with open("./output/data.csv", 'w') as f1:
+        with open("./output/data.csv", 'w', newline='') as f1:
             cwriter = csv.writer(f1)
             cwriter.writerow(['Direction'] + vehicles)
             self.up_list.insert(0, "Up")
