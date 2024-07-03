@@ -36,6 +36,13 @@ class ObjectDetectionApp:
         self.colors = [(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)) for _ in range(10)]
         self.video_path = None
 
+        # Mapping class IDs to class labels
+        self.class_labels = {
+            0: "person", 1: "bicycle", 2: "car", 3: "motorcycle",
+            4: "airplane", 5: "bus", 6: "train", 7: "truck",
+            8: "boat", 9: "traffic light", 10: "fire hydrant",
+        }
+
     def select_video(self):
         # Select a video file
         self.video_path = filedialog.askopenfilename(title="Select Video File", filetypes=[("Video files", "*.mp4;*.avi")])
@@ -82,7 +89,7 @@ class ObjectDetectionApp:
                     x2 = int(x2)
                     y2 = int(y2)
                     class_id = int(class_id)
-                    detections.append([x1, y1, x2, y2, score])
+                    detections.append([x1, y1, x2, y2, class_id, score])
                 
                 self.tracker.update(frame, detections)
 
@@ -94,9 +101,11 @@ class ObjectDetectionApp:
                     x2 = int(x2)
                     y2 = int(y2)
                     track_id = track.track_id
+                    class_id = track.class_id
+                    class_label = self.class_labels.get(class_id, "unknown")
 
                     cv2.rectangle(frame, (x1, y1), (x2, y2), (self.colors[track_id % len(self.colors)]), 3)
-                    cv2.putText(frame, f"ID: {track_id}", (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, self.colors[track_id % len(self.colors)], 3)
+                    cv2.putText(frame, f"ID: {track_id} {class_label}", (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, self.colors[track_id % len(self.colors)], 3)
 
             frame = cv2.resize(frame, (800, 600))
             cv2.imshow('frame', frame)
