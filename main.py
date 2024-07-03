@@ -1,175 +1,116 @@
-import os
 import cv2
-from tkinter import filedialog
+import tkinter as tk
+from tkinter import filedialog, messagebox
 from ultralytics import YOLO
 from tracker import Tracker
 import random
+import numpy as np
+from PIL import Image, ImageTk
 
-video_path = filedialog.askopenfilename(title="Select Video File", filetypes=[("Video files", "*.mp4;*.avi")])
+class ObjectDetectionApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Object Detection and Tracking")
 
-cap = cv2.VideoCapture(video_path)
+        # Frame for the canvas and buttons
+        self.frame = tk.Frame(root)
+        self.frame.pack()
 
-ret, frame = cap.read()
+        # Canvas to display video frames and fences
+        self.canvas = tk.Canvas(self.frame, width=800, height=600)
+        self.canvas.grid(row=0, column=0, columnspan=3)
 
-model = YOLO("yolov8n.pt")
-tracker = Tracker()
+        # Buttons for video selection, processing, and quitting
+        self.select_button = tk.Button(self.frame, text="Select Video", command=self.select_video)
+        self.select_button.grid(row=1, column=0, pady=20, padx=20)
 
-colors = [(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)) for j in range(10)]
+        self.process_button = tk.Button(self.frame, text="Process Video", command=self.process_video)
+        self.process_button.grid(row=1, column=1, pady=20, padx=20)
 
-while ret:
-    results = model(frame)
-    for result in results:
-        detections = []
-        for r in result.boxes.data.tolist():
-            x1, y1, x2, y2, score, class_id = r
-            x1 = int(x1)
-            y1 = int(y1)
-            x2 = int(x2)
-            y2 = int(y2)
-            class_id = int(class_id)
-            detections.append([x1, y1, x2, y2, score])
-        
-        tracker.update(frame, detections)
+        self.quit_button = tk.Button(self.frame, text="Quit", command=root.quit)
+        self.quit_button.grid(row=1, column=2, pady=20, padx=20)
 
-        for track in tracker.tracks:
-            bbox = track.bbox
-            x1, y1, x2, y2 = bbox
-            x1 = int(x1)
-            y1 = int(y1)
-            x2 = int(x2)
-            y2 = int(y2)
-            track_id = track.track_id
+        # Initialize YOLO model and tracker
+        self.model = YOLO("yolov8n.pt")
+        self.tracker = Tracker()
+        self.colors = [(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)) for _ in range(10)]
+        self.video_path = None
 
-            cv2.rectangle(frame, (x1, y1), (x2, y2), (colors[track_id % len(colors)]), 3)
-            cv2.putText(frame, f"ID: {track_id}", (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, colors[track_id % len(colors)], 3)
+    def select_video(self):
+        # Select a video file
+        self.video_path = filedialog.askopenfilename(title="Select Video File", filetypes=[("Video files", "*.mp4;*.avi")])
+        self.display_video_thumbnail(self.video_path)
 
-    frame = cv2.resize(frame, (800, 600))
-    cv2.imshow('frame', frame)
-    cv2.waitKey(25)
-    ret, frame = cap.read()
-    if cv2.waitKey(25) & 0xFF == ord('q'):
-        break
+    def display_video_thumbnail(self, video_path):
+        # Display thumbnail of the selected video
+        cap = cv2.VideoCapture(video_path)
+        ret, frame = cap.read()
+        if ret:
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            frame = cv2.resize(frame, (800, 600))
+            self.thumbnail = frame
+            self.show_frame_on_canvas(frame)
+        cap.release()
 
-cap.release()
-cv2.destroyAllWindows()
+    def show_frame_on_canvas(self, frame):
+        # Show the frame on the Tkinter canvas
+        img = Image.fromarray(frame)
+        imgtk = ImageTk.PhotoImage(image=img)
+        self.canvas.create_image(0, 0, anchor=tk.NW, image=imgtk)
+        self.canvas.imgtk = imgtk
 
-# import os
-# import random
-# import tkinter as tk
-# from tkinter import filedialog
-# import cv2
-# from ultralytics import YOLO
-# from tracker import Tracker
+    def process_video(self):
+        # Process the selected video
+        if self.video_path is None:
+            messagebox.showerror("Error", "No video selected")
+            return
+        self.run_detection(self.video_path)
 
-# # Initialize tkinter root window (if not already initialized)
-# root = tk.Tk()
-# root.withdraw()  # Hide the root window
+    def run_detection(self, video_path):
+        # Run YOLO detection and Deep SORT tracking
+        cap = cv2.VideoCapture(video_path)
+        ret, frame = cap.read()
 
-# # Prompt user to select a video file
-# video_path = filedialog.askopenfilename(title="Select Video File", filetypes=[("Video files", "*.mp4;*.avi")])
+        while ret:
+            results = self.model(frame)
+            for result in results:
+                detections = []
+                for r in result.boxes.data.tolist():
+                    x1, y1, x2, y2, score, class_id = r
+                    x1 = int(x1)
+                    y1 = int(y1)
+                    x2 = int(x2)
+                    y2 = int(y2)
+                    class_id = int(class_id)
+                    detections.append([x1, y1, x2, y2, score])
+                
+                self.tracker.update(frame, detections)
 
-# # Check if a file was selected
-# if not video_path:
-#     print("No video file selected. Exiting.")
-#     exit()
+                for track in self.tracker.tracks:
+                    bbox = track.bbox
+                    x1, y1, x2, y2 = bbox
+                    x1 = int(x1)
+                    y1 = int(y1)
+                    x2 = int(x2)
+                    y2 = int(y2)
+                    track_id = track.track_id
 
-# # Output video path
-# video_out_path = os.path.join('.', 'out.mp4')
+                    cv2.rectangle(frame, (x1, y1), (x2, y2), (self.colors[track_id % len(self.colors)]), 3)
+                    cv2.putText(frame, f"ID: {track_id}", (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, self.colors[track_id % len(self.colors)], 3)
 
-# cap = cv2.VideoCapture(video_path)
-# ret, frame = cap.read()
+            frame = cv2.resize(frame, (800, 600))
+            cv2.imshow('frame', frame)
+            if cv2.waitKey(25) & 0xFF == ord('q'):
+                break
+            ret, frame = cap.read()
 
-# # Get original frame dimensions
-# original_width = frame.shape[1]
-# original_height = frame.shape[0]
+        cap.release()
+        cv2.destroyAllWindows()
 
-# # Set desired frame dimensions
-# desired_width = 800
-# desired_height = 600
-
-# # Initialize video writer with desired dimensions
-# cap_out = cv2.VideoWriter(video_out_path, cv2.VideoWriter_fourcc(*'MP4V'), cap.get(cv2.CAP_PROP_FPS),
-#                           (desired_width, desired_height))
-
-# # Initialize YOLO model
-# model = YOLO("yolov8n.pt")
-
-# # Initialize tracker
-# tracker = Tracker()
-
-# # Generate random colors for bounding boxes
-# colors = [(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)) for _ in range(10)]
-
-# # Detection threshold
-# detection_threshold = 0.5
-
-# while ret:
-#     # Perform detection using YOLO model
-#     results = model(frame)
-
-#     # Debug: Print number of results and detections
-#     print(f"Number of results: {len(results)}")
-
-#     detections = []
-#     for result in results:
-#         for r in result.boxes.data.tolist():
-#             x1, y1, x2, y2, score, class_id = r
-#             x1 = int(x1)
-#             x2 = int(x2)
-#             y1 = int(y1)
-#             y2 = int(y2)
-#             class_id = int(class_id)
-#             if score > detection_threshold:
-#                 detections.append([x1, y1, x2, y2, score])
-
-#     # Debug: Print detections before sending to the tracker
-#     print(f"Detections: {detections}")
-
-#     # Update tracker with detections
-#     tracker.update(frame, detections)
-
-#     # Debug: Print tracker state
-#     for track in tracker.tracks:
-#         print(f"Track ID: {track.track_id}, BBox: {track.bbox}")
-
-#     # Draw bounding boxes for each tracked object
-#     for track in tracker.tracks:
-#         bbox = track.bbox
-#         x1, y1, x2, y2 = bbox
-#         track_id = track.track_id
-
-#         # Debug: Print bounding box coordinates and track ID
-#         print(f"Track ID: {track_id}, BBox: {bbox}")
-
-#         # Scale bounding box coordinates to match resized frame
-#         x1 = int(x1 * desired_width / original_width)
-#         y1 = int(y1 * desired_height / original_height)
-#         x2 = int(x2 * desired_width / original_width)
-#         y2 = int(y2 * desired_height / original_height)
-
-#         cv2.rectangle(frame, (x1, y1), (x2, y2), colors[track_id % len(colors)], 3)
-#         cv2.putText(frame, f"ID: {track_id}", (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, colors[track_id % len(colors)], 2)
-
-#     # Resize frame for preview
-#     frame = cv2.resize(frame, (desired_width, desired_height))
-
-#     # Show frame with bounding boxes
-#     cv2.imshow("Frame", frame)
-
-#     # Write frame to output video
-#     cap_out.write(frame)
-
-#     # Break loop on 'q' key press
-#     if cv2.waitKey(1) & 0xFF == ord('q'):
-#         break
-
-#     # Read next frame
-#     ret, frame = cap.read()
-
-# # Release video capture and writer, and close all windows
-# cap.release()
-# cap_out.release()
-# cv2.destroyAllWindows()
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = ObjectDetectionApp(root)
+    root.mainloop()
 
 
 
