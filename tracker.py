@@ -56,7 +56,7 @@ class Tracker:
         # Create Detection objects for the tracker
         dets = []
         for bbox_id, bbox in enumerate(bboxes):
-            dets.append(Detection(bbox, scores[bbox_id], features[bbox_id]))
+            dets.append(Detection(bbox, scores[bbox_id], features[bbox_id], class_ids[bbox_id]))
 
         # Predict and update the tracker with new detections
         self.tracker.predict()
