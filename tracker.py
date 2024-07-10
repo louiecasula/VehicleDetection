@@ -54,9 +54,7 @@ class Tracker:
         features = self.encoder(frame, bboxes)
 
         # Create Detection objects for the tracker
-        dets = []
-        for bbox_id, bbox in enumerate(bboxes):
-            dets.append(Detection(bbox, scores[bbox_id], features[bbox_id], class_ids[bbox_id]))
+        dets = [Detection(bbox, scores[i], features[i], class_ids[i]) for i, bbox in enumerate(bboxes)]
 
         # Predict and update the tracker with new detections
         self.tracker.predict()
@@ -78,7 +76,8 @@ class Tracker:
             bbox = track.to_tlbr()
             track_id = track.track_id
             class_id = class_ids[track_idx] if track_idx < len(class_ids) else -1
-            tracks.append(Track(track_id, bbox, class_id))
+            new_track = Track(track_id, bbox, class_id)
+            tracks.append(new_track)
 
         self.tracks = tracks
 
@@ -89,6 +88,7 @@ class Track:
     track_id = None
     bbox = None
     class_id = None
+    center = None
 
     def __init__(self, track_id, bbox, class_id):
         """
@@ -102,3 +102,13 @@ class Track:
         self.track_id = track_id
         self.bbox = bbox
         self.class_id = class_id
+        self.center = self.update_center()
+
+    def update_center(self):
+        """
+        Updates the center point of the bounding box.
+        """
+        x1, y1, x2, y2 = self.bbox
+        center_x = int((x1 + x2) / 2)
+        center_y = int((y1 + y2) / 2)
+        return (center_x, center_y)

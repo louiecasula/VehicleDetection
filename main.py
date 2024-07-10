@@ -43,6 +43,9 @@ class ObjectDetectionApp:
             8: "boat", 9: "traffic light", 10: "fire hydrant",
         }
 
+        # Saving each detected object
+        self.objects = {}
+
     def select_video(self):
         # Select a video file
         self.video_path = filedialog.askopenfilename(title="Select Video File", filetypes=[("Video files", "*.mp4;*.avi")])
@@ -103,9 +106,12 @@ class ObjectDetectionApp:
                     track_id = track.track_id
                     class_id = track.class_id
                     class_label = self.class_labels.get(class_id, "unknown")
+                    center = track.center
+                    print("Track ID:", track_id, "Class ID:", class_id, class_label, center)
 
                     cv2.rectangle(frame, (x1, y1), (x2, y2), (self.colors[track_id % len(self.colors)]), 3)
                     cv2.putText(frame, f"ID: {track_id} {class_label}", (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, self.colors[track_id % len(self.colors)], 3)
+                    cv2.circle(frame, center, 5, self.colors[track_id % len(self.colors)], -1)
 
             frame = cv2.resize(frame, (800, 600))
             cv2.imshow('frame', frame)
