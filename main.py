@@ -6,6 +6,9 @@ from tracker import Tracker
 import random
 import numpy as np
 from PIL import Image, ImageTk
+from collections import defaultdict
+import csv
+import os
 
 class ObjectDetectionApp:
     def __init__(self, root):
@@ -43,8 +46,8 @@ class ObjectDetectionApp:
             8: "boat", 9: "traffic light", 10: "fire hydrant",
         }
 
-        # Saving each detected object
-        self.objects = {}
+        # Save each detected object to a dictionary
+        self.objects = defaultdict(dict)
 
     def select_video(self):
         # Select a video file
@@ -109,6 +112,17 @@ class ObjectDetectionApp:
                     center = track.center
                     print("Track ID:", track_id, "Class ID:", class_id, class_label, center)
 
+                    # Update each objects's dict values
+                    coordinates = self.objects[track_id]['coordinates'] + [center] if self.objects[track_id] else [center]
+
+                    crossing_payload = {
+                        'track_id': track_id,
+                        'object_type': class_label,
+                        'coordinates': coordinates
+                    }
+
+                    self.objects[track_id] = crossing_payload
+
                     cv2.rectangle(frame, (x1, y1), (x2, y2), (self.colors[track_id % len(self.colors)]), 3)
                     cv2.putText(frame, f"ID: {track_id} {class_label}", (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, self.colors[track_id % len(self.colors)], 3)
                     cv2.circle(frame, center, 5, self.colors[track_id % len(self.colors)], -1)
@@ -121,7 +135,18 @@ class ObjectDetectionApp:
 
         cap.release()
         cv2.destroyAllWindows()
+        self.save_to_csv()
 
+    def save_to_csv(self):
+        # Save object data to a csv
+        title = os.path.splitext(os.path.basename(self.video_path))[0]
+        keys = ['track_id', 'object_type', 'coordinates']
+        with open(f"./output/{title}.csv", 'w', newline='') as out:
+            dict_writer = csv.DictWriter(out, fieldnames=keys)
+            dict_writer.writeheader()
+            dict_writer.writerows(self.objects.values())
+        out.close()
+        
 if __name__ == "__main__":
     root = tk.Tk()
     app = ObjectDetectionApp(root)
