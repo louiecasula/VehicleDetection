@@ -110,7 +110,8 @@ class ObjectDetectionApp:
                     class_id = track.class_id
                     class_label = self.class_labels.get(class_id, "unknown")
                     center = track.center
-                    print("Track ID:", track_id, "Class ID:", class_id, class_label, center)
+                    confidence = track.confidence
+                    print("Track ID:", track_id, "Class ID:", class_id, confidence, "%", class_label, center)
 
                     # Update each objects's dict values
                     coordinates = self.objects[track_id]['coordinates'] + [center] if self.objects[track_id] else [center]
@@ -123,8 +124,9 @@ class ObjectDetectionApp:
 
                     self.objects[track_id] = crossing_payload
 
+                    label = f'ID: {track_id} {class_label} {confidence}%'
                     cv2.rectangle(frame, (x1, y1), (x2, y2), (self.colors[track_id % len(self.colors)]), 3)
-                    cv2.putText(frame, f"ID: {track_id} {class_label}", (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, self.colors[track_id % len(self.colors)], 3)
+                    cv2.putText(frame, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, self.colors[track_id % len(self.colors)], 3)
                     cv2.circle(frame, center, 5, self.colors[track_id % len(self.colors)], -1)
 
             frame = cv2.resize(frame, (800, 600))

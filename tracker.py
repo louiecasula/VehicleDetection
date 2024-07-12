@@ -60,9 +60,9 @@ class Tracker:
         self.tracker.predict()
         self.tracker.update(dets)
         # Update the internal tracks with the detected class IDs
-        self.update_tracks(class_ids)
+        self.update_tracks(dets)
 
-    def update_tracks(self, class_ids):
+    def update_tracks(self, detections):
         """
         Updates the internal tracks with new class IDs.
 
@@ -75,8 +75,9 @@ class Tracker:
                 continue
             bbox = track.to_tlbr()
             track_id = track.track_id
-            class_id = class_ids[track_idx] if track_idx < len(class_ids) else -1
-            new_track = Track(track_id, bbox, class_id)
+            class_id = detections[track_idx].class_id if track_idx < len(detections) else -1
+            confidence = detections[track_idx].confidence if track_idx < len(detections) else 0
+            new_track = Track(track_id, bbox, class_id, confidence)
             tracks.append(new_track)
 
         self.tracks = tracks
@@ -89,8 +90,9 @@ class Track:
     bbox = None
     class_id = None
     center = None
+    confidence = None
 
-    def __init__(self, track_id, bbox, class_id):
+    def __init__(self, track_id, bbox, class_id, confidence):
         """
         Initializes a Track object with the given parameters.
 
@@ -103,6 +105,7 @@ class Track:
         self.bbox = bbox
         self.class_id = class_id
         self.center = self.update_center()
+        self.confidence = round(confidence * 100, 2)
 
     def update_center(self):
         """
