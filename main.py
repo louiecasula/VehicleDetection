@@ -80,6 +80,9 @@ class ObjectDetectionApp:
         self.run_detection(self.video_path)
 
     def run_detection(self, video_path):
+        # Clear any previous object information
+        self.objects = defaultdict(dict)
+
         # Run YOLO detection and Deep SORT tracking
         cap = cv2.VideoCapture(video_path)
         ret, frame = cap.read()
