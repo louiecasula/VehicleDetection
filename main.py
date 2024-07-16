@@ -92,23 +92,14 @@ class ObjectDetectionApp:
             for result in results:
                 detections = []
                 for r in result.boxes.data.tolist():
-                    x1, y1, x2, y2, score, class_id = r
-                    x1 = int(x1)
-                    y1 = int(y1)
-                    x2 = int(x2)
-                    y2 = int(y2)
-                    class_id = int(class_id)
+                    x1, y1, x2, y2, score, class_id = map(lambda x: int(x) if x != r[4] else x, r)
                     detections.append([x1, y1, x2, y2, class_id, score])
                 
                 self.tracker.update(frame, detections)
 
                 for track in self.tracker.tracks:
                     bbox = track.bbox
-                    x1, y1, x2, y2 = bbox
-                    x1 = int(x1)
-                    y1 = int(y1)
-                    x2 = int(x2)
-                    y2 = int(y2)
+                    x1, y1, x2, y2 = map(int, bbox)
                     track_id = track.track_id
                     class_id = track.class_id
                     class_label = self.class_labels.get(class_id, "unknown")
