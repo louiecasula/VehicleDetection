@@ -34,7 +34,7 @@ class ObjectDetectionApp:
         self.quit_button.grid(row=1, column=2, pady=20, padx=20)
 
         # Initialize YOLO model and tracker
-        self.model = YOLO("yolov8n.pt")
+        self.model = YOLO(model="yolov8m.pt")
         self.tracker = Tracker()
         self.colors = [(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)) for _ in range(10)]
         self.video_path = None
