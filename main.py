@@ -87,6 +87,9 @@ class ObjectDetectionApp:
         cap = cv2.VideoCapture(video_path)
         ret, frame = cap.read()
 
+        # Keep track of frame index
+        frame_idx = 1
+
         while ret:
             results = self.model(frame)
             for result in results:
@@ -108,7 +111,7 @@ class ObjectDetectionApp:
                     print("Track ID:", track_id, "Class ID:", class_id, confidence, "%", class_label, center)
 
                     # Update each objects's dict values
-                    coordinates = self.objects[track_id]['coordinates'] + [center] if self.objects[track_id] else [center]
+                    coordinates = self.objects[track_id]['coordinates'] + [{frame_idx: center}] if self.objects[track_id] else [{frame_idx: center}]
 
                     crossing_payload = {
                         'track_id': track_id,
@@ -128,6 +131,8 @@ class ObjectDetectionApp:
             if cv2.waitKey(25) & 0xFF == ord('q'):
                 break
             ret, frame = cap.read()
+
+            frame_idx += 1
 
         cap.release()
         cv2.destroyAllWindows()
