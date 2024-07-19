@@ -4,7 +4,6 @@ from tkinter import filedialog, messagebox
 from ultralytics import YOLO
 from tracker import Tracker
 import random
-import numpy as np
 from PIL import Image, ImageTk
 from collections import defaultdict
 import csv
