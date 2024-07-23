@@ -13,7 +13,7 @@ This project leverages YOLOv8 for object detection and Deep SORT for object trac
 1. Clone the repository:
 
     ```sh
-    git clone [<repository-url>](https://github.com/louiecasula/VehicleDetection.git)
+    git clone https://github.com/louiecasula/VehicleDetection.git
     ```
 
 2. Install the required dependencies:
