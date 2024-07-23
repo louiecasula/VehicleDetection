@@ -1,62 +1,69 @@
-# OpenCV Vehicle Detection
-A deployable model built upon the OpenCV library for the use of classifying vehicles and counting how many of each enter and exit a particular subdivision over a period of time.
+# Vehicle Tracking with YOLOv8 and Deep SORT
 
-## Features
-
-- **Video Analysis**: Processes video footage to detect various objects (vehicles, pedestrians) at traffic intersections.
-- **Graphical User Interface (GUI)**: User-friendly interface for video selection and fence drawing.
-- **Object Detection**: Uses OpenCV to identify and track objects in the video.
-- **Data Tabulation**: Records detected objects crossing a user-defined fence and stores the data in an Excel spreadsheet.
+This project leverages YOLOv8 for object detection and Deep SORT for object tracking to monitor vehicle movements in traffic intersection videos. The application detects various types of vehicles and tracks their trajectories, providing insightful data for traffic analysis.
 
 ## Installation
 
 ### Prerequisites
 
-- Python 3.8
-- Anaconda (recommended for managing dependencies)
-- OpenCV
-- Tkinter
+- Python 3.8 or higher
 
-### Setup
+### Steps
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/louiecasula/VehicleDetection.git
-   cd VehicleDetection
-   ```
+1. Clone the repository:
 
-2. **Create a new conda environment:**
-   ```bash
-   conda create --name vehicledetect
-   conda activate vehicledetect
-   ```
+    ```sh
+    git clone [<repository-url>](https://github.com/louiecasula/VehicleDetection.git)
+    ```
 
-3. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
+2. Install the required dependencies:
 
-4. **Install OpenCV:**
-   ```bash
-   conda install -c conda-forge opencv
-   ```
+    ```sh
+    pip install -r requirements.txt
+    ```
 
 ## Usage
 
-1. **Launch the program:**
-   ```bash
-   python main.py
-   ```
+### Running the Application
 
-2. **Select a video:**
-   - The GUI will open, prompting you to select a video file from your machine.
+1. Ensure you have a video file you wish to process.
+2. Execute the application:
 
-3. **Draw a fence:**
-   - After selecting the video, draw a fence on the video frame. The program will count objects crossing this fence.
+    ```sh
+    python main.py
+    ```
 
-4. **Start detection:**
-   - Click the "Process Video" button. The program will process the video, detect objects, and update the table when objects cross the fence.
-   - Press 'q' to quit processing video.
+3. The GUI will prompt you to select a video file for processing.
 
-5. **Export data:**
-   - The data will be automatically tabulated into a spreadsheet located in the output directory.
+![videointerp_demo1](https://github.com/user-attachments/assets/74a4ef9b-520e-4b1c-b68d-dfd7969f90f9)
+
+
+### Vehicle Tracking
+
+- The application will detect and track vehicles within the selected video.
+- The center points of detected vehicles are used to calculate their direction of travel.
+- As each vehicle moves, its center point is tracked, and the direction is determined based on these points' movement across frames.
+- Each tracked vehicle's data is saved into a CSV file, capturing:
+  - Track ID
+  - Class/Object type
+  - Coordinates mapped to the corresponding frame
+
+### OpenCV Integration
+
+- **OpenCV** is utilized extensively for various video processing tasks, including video file reading, frame extraction, and displaying the processed video with overlayed tracking information.
+
+## YOLOv8 and Deep SORT
+
+- **YOLOv8**: Employed for real-time object detection, providing bounding boxes and class labels for detected vehicles.
+- **Deep SORT**: Utilized for object tracking, assigning unique IDs to detected objects and maintaining their identities across frames, even when temporarily occluded.
+
+### References
+
+- The implementation of YOLOv8 and Deep SORT is based on guidance from this [repository](https://github.com/computervisioneng/object-tracking-yolov8-deep-sort).
+- Modifications were made to the Deep SORT implementation from this [repository](https://github.com/nwojke/deep_sort), including updates to the `Detections` object and import statements to ensure compatibility with the current setup.
+
+## Future Considerations
+
+- **Graphical Representation of Vehicle Paths**: Enhancing the application to visually represent the center coordinates of each vehicle, illustrating their traveled paths.
+- **Custom Model Training**: Exploring the training of custom models to enhance detection accuracy.
+- **Alternative Detectors**: Investigating the use of other object detection models for comparative analysis and potential improvement in tracking performance.

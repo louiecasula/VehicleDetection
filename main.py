@@ -4,13 +4,44 @@ from tkinter import filedialog, messagebox
 from ultralytics import YOLO
 from tracker import Tracker
 import random
-import numpy as np
 from PIL import Image, ImageTk
 from collections import defaultdict
 import csv
 import os
 
+
 class ObjectDetectionApp:
+    """
+    A Tkinter application for object detection and tracking using YOLO and Deep SORT.
+
+    Attributes:
+    -----------
+    root : tk.Tk
+        The root window of the Tkinter application.
+    frame : tk.Frame
+        The frame containing the canvas and buttons.
+    canvas : tk.Canvas
+        The canvas for displaying video frames and fences.
+    select_button : tk.Button
+        Button to select a video file.
+    process_button : tk.Button
+        Button to process the selected video.
+    quit_button : tk.Button
+        Button to quit the application.
+    model : YOLO
+        The YOLO model for object detection.
+    tracker : Tracker
+        The modified DEEP Sort tracker for object tracking.
+    colors : list
+        List of random colors for drawing bounding boxes.
+    video_path : str
+        Path to the selected video file.
+    class_labels : dict
+        Mapping of class IDs to class labels.
+    objects : defaultdict
+        Dictionary to store detected objects and their data.
+    """
+    
     def __init__(self, root):
         self.root = root
         self.root.title("Object Detection and Tracking")
@@ -50,12 +81,13 @@ class ObjectDetectionApp:
         self.objects = defaultdict(dict)
 
     def select_video(self):
-        # Select a video file
+        """Select a video file and display its thumbnail."""
         self.video_path = filedialog.askopenfilename(title="Select Video File", filetypes=[("Video files", "*.mp4;*.avi")])
-        self.display_video_thumbnail(self.video_path)
+        if self.video_path:
+            self.display_video_thumbnail(self.video_path)
 
     def display_video_thumbnail(self, video_path):
-        # Display thumbnail of the selected video
+        """Display a thumbnail of the selected video on the canvas."""
         cap = cv2.VideoCapture(video_path)
         ret, frame = cap.read()
         if ret:
@@ -66,38 +98,36 @@ class ObjectDetectionApp:
         cap.release()
 
     def show_frame_on_canvas(self, frame):
-        # Show the frame on the Tkinter canvas
+        """Display a frame on the Tkinter canvas."""
         img = Image.fromarray(frame)
         imgtk = ImageTk.PhotoImage(image=img)
         self.canvas.create_image(0, 0, anchor=tk.NW, image=imgtk)
         self.canvas.imgtk = imgtk
 
     def process_video(self):
-        # Process the selected video
-        if self.video_path is None:
+        """Process the selected video and perform object detection and tracking."""
+        if not self.video_path:
             messagebox.showerror("Error", "No video selected")
             return
         self.run_detection(self.video_path)
 
     def run_detection(self, video_path):
+        """Run YOLO detection and Deep SORT tracking on the video."""
         # Clear any previous object information
-        self.objects = defaultdict(dict)
+        self.objects.clear()
 
-        # Run YOLO detection and Deep SORT tracking
         cap = cv2.VideoCapture(video_path)
         ret, frame = cap.read()
-
-        # Keep track of frame index
         frame_idx = 1
 
         while ret:
             results = self.model(frame)
             for result in results:
-                detections = []
-                for r in result.boxes.data.tolist():
-                    x1, y1, x2, y2, score, class_id = map(lambda x: int(x) if x != r[4] else x, r)
-                    detections.append([x1, y1, x2, y2, class_id, score])
-                
+                detections = [
+                    [int(r[0]), int(r[1]), int(r[2]), int(r[3]), int(r[5]), r[4]]
+                    for r in result.boxes.data.tolist()
+                ]
+
                 self.tracker.update(frame, detections)
 
                 for track in self.tracker.tracks:
@@ -108,10 +138,10 @@ class ObjectDetectionApp:
                     class_label = self.class_labels.get(class_id, "unknown")
                     center = track.center
                     confidence = track.confidence
+
                     print("Track ID:", track_id, "Class ID:", class_id, confidence, "%", class_label, center)
 
-                    # Update each objects's dict values
-                    coordinates = self.objects[track_id]['coordinates'] + [{frame_idx: center}] if self.objects[track_id] else [{frame_idx: center}]
+                    coordinates = self.objects[track_id].get('coordinates', []) + [{frame_idx: center}]
 
                     crossing_payload = {
                         'track_id': track_id,
@@ -121,8 +151,8 @@ class ObjectDetectionApp:
 
                     self.objects[track_id] = crossing_payload
 
-                    label = f'ID: {track_id} {class_label} {confidence}%'
-                    cv2.rectangle(frame, (x1, y1), (x2, y2), (self.colors[track_id % len(self.colors)]), 3)
+                    label = f'ID: {track_id} {class_label} {confidence:.2f}%'
+                    cv2.rectangle(frame, (x1, y1), (x2, y2), self.colors[track_id % len(self.colors)], 3)
                     cv2.putText(frame, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, self.colors[track_id % len(self.colors)], 3)
                     cv2.circle(frame, center, 5, self.colors[track_id % len(self.colors)], -1)
 
@@ -131,7 +161,6 @@ class ObjectDetectionApp:
             if cv2.waitKey(25) & 0xFF == ord('q'):
                 break
             ret, frame = cap.read()
-
             frame_idx += 1
 
         cap.release()
@@ -139,17 +168,17 @@ class ObjectDetectionApp:
         self.save_to_csv()
 
     def save_to_csv(self):
-        # Save object data to a csv
+        """Save detected object data to a CSV file."""
         title = os.path.splitext(os.path.basename(self.video_path))[0]
         keys = ['track_id', 'object_type', 'coordinates']
+        os.makedirs('./output', exist_ok=True)
         with open(f"./output/{title}.csv", 'w', newline='') as out:
             dict_writer = csv.DictWriter(out, fieldnames=keys)
             dict_writer.writeheader()
             dict_writer.writerows(self.objects.values())
-        out.close()
         
+
 if __name__ == "__main__":
     root = tk.Tk()
     app = ObjectDetectionApp(root)
     root.mainloop()
-

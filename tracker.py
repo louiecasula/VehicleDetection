@@ -4,13 +4,20 @@ from deep_sort.deep_sort import nn_matching
 from deep_sort.deep_sort.detection import Detection
 import numpy as np
 
+
 class Tracker:
     """
     A class to perform object tracking using Deep SORT and YOLO for object detection.
+
+    Attributes:
+    -----------
+    tracker : DeepSortTracker
+        The Deep SORT tracker instance.
+    encoder : Callable
+        The function to generate features for bounding boxes.
+    tracks : list
+        List of current tracks.
     """
-    tracker = None
-    encoder = None
-    tracks = None
 
     def __init__(self):
         """
@@ -18,7 +25,6 @@ class Tracker:
         """
         max_cosine_distance = 0.4
         nn_budget = None
-
         encoder_model_filename = 'model_data/mars-small128.pb'
 
         # Create the nearest neighbor distance metric
@@ -27,6 +33,7 @@ class Tracker:
         self.tracker = DeepSortTracker(metric)
         # Create the box encoder using the specified model
         self.encoder = gdet.create_box_encoder(encoder_model_filename, batch_size=1)
+        self.tracks = []
 
     def update(self, frame, detections):
         """
@@ -46,7 +53,7 @@ class Tracker:
 
         # Extract bounding boxes and class IDs from detections
         bboxes = np.asarray([d[:-2] for d in detections])  # Exclude class_id and score
-        bboxes[:, 2:] = bboxes[:, 2:] - bboxes[:, 0:2]
+        bboxes[:, 2:] = bboxes[:, 2:] - bboxes[:, 0:2]  # Convert to (x, y, width, height)
         scores = [d[-1] for d in detections]
         class_ids = [d[-2] for d in detections]
 
@@ -67,7 +74,7 @@ class Tracker:
         Updates the internal tracks with new class IDs.
 
         Args:
-            class_ids (list): A list of class IDs corresponding to the tracked objects.
+            detections (list): A list of Detection objects.
         """
         tracks = []
         for track_idx, track in enumerate(self.tracker.tracks):
@@ -82,15 +89,24 @@ class Tracker:
 
         self.tracks = tracks
 
+
 class Track:
     """
     A class to represent a single tracked object.
+
+    Attributes:
+    -----------
+    track_id : int
+        The unique ID of the track.
+    bbox : list
+        The bounding box coordinates of the tracked object.
+    class_id : int
+        The class ID of the tracked object.
+    center : tuple
+        The center coordinates of the bounding box.
+    confidence : float
+        The confidence score of the detection.
     """
-    track_id = None
-    bbox = None
-    class_id = None
-    center = None
-    confidence = None
 
     def __init__(self, track_id, bbox, class_id, confidence):
         """
@@ -100,6 +116,7 @@ class Track:
             track_id (int): The unique ID of the track.
             bbox (list): The bounding box coordinates of the tracked object.
             class_id (int): The class ID of the tracked object.
+            confidence (float): The confidence score of the detection.
         """
         self.track_id = track_id
         self.bbox = bbox
@@ -110,8 +127,11 @@ class Track:
     def update_center(self):
         """
         Updates the center point of the bounding box.
+
+        Returns:
+            tuple: The (x, y) coordinates of the center point.
         """
         x1, y1, x2, y2 = self.bbox
         center_x = int((x1 + x2) / 2)
         center_y = int((y1 + y2) / 2)
-        return (center_x, center_y)
+        return center_x, center_y
