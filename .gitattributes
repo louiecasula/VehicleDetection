@@ -1,0 +1,8 @@
+# Mark Python files
+*.py linguist-language=Python
+
+# Exclude vendored dependencies and configuration files from language stats
+docs/* linguist-vendored
+tests/* linguist-vendored
+*.yml linguist-vendored
+*.json linguist-vendored
