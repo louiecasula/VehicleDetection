@@ -95,6 +95,8 @@ class ObjectDetectionApp:
             frame = cv2.resize(frame, (800, 600))
             self.thumbnail = frame
             self.show_frame_on_canvas(frame)
+            self.video_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+            self.video_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         cap.release()
 
     def show_frame_on_canvas(self, frame):
@@ -176,6 +178,29 @@ class ObjectDetectionApp:
             dict_writer = csv.DictWriter(out, fieldnames=keys)
             dict_writer.writeheader()
             dict_writer.writerows(self.objects.values())
+
+        """Save detected object data to a formatted CSV file."""
+        title = os.path.splitext(os.path.basename(self.video_path))[0] + "FORMAT"
+        keys = ['track_id', 'object_type', 'frame', 'x', 'y']
+        os.makedirs('./output', exist_ok=True)
+        with open(f"./output/{title}.csv", 'w', newline='') as out:
+            dict_writer = csv.DictWriter(out, fieldnames=keys)
+            dict_writer.writeheader()
+            rows = []
+            for obj in self.objects.values():
+                track_id = obj['track_id']
+                object_type = obj['object_type']
+                for coord in obj['coordinates']:
+                    for frame, (x, y) in coord.items():
+                        row = {
+                            'track_id': track_id,
+                            'object_type': object_type,
+                            'frame': frame,
+                            'x': x,
+                            'y': self.video_height - 1 - y  # Flip the y value
+                        }
+                        rows.append(row)
+            dict_writer.writerows(rows)
         
 
 if __name__ == "__main__":
