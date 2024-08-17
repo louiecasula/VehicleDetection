@@ -81,8 +81,8 @@ class Tracker:
         for track in self.tracker.tracks:
             if not track.is_confirmed() or track.time_since_update > 0:
                 continue
-            track.class_id = detections[i].class_id if i < len(detections) else -1
-            track.confidence = round(detections[i].confidence * 100, 2) if i < len(detections) else 0
+            track.class_id = detections[i].class_id
+            track.confidence = round(detections[i].confidence * 100, 2)
             track.bbox = track.to_tlbr()
             track.center = track.update_center()
             tracks.append(track)
