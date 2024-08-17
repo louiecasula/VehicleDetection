@@ -77,61 +77,16 @@ class Tracker:
             detections (list): A list of Detection objects.
         """
         tracks = []
-        for track_idx, track in enumerate(self.tracker.tracks):
-            if not track.is_confirmed() or track.time_since_update > 1:
+        i = 0
+        for track in self.tracker.tracks:
+            if not track.is_confirmed() or track.time_since_update > 0:
                 continue
-            bbox = track.to_tlbr()
-            track_id = track.track_id
-            class_id = detections[track_idx].class_id if track_idx < len(detections) else -1
-            confidence = detections[track_idx].confidence if track_idx < len(detections) else 0
-            new_track = Track(track_id, bbox, class_id, confidence)
-            tracks.append(new_track)
+            track.class_id = detections[i].class_id if i < len(detections) else -1
+            track.confidence = round(detections[i].confidence * 100, 2) if i < len(detections) else 0
+            track.bbox = track.to_tlbr()
+            track.center = track.update_center()
+            tracks.append(track)
+            i += 1
 
         self.tracks = tracks
 
-
-class Track:
-    """
-    A class to represent a single tracked object.
-
-    Attributes:
-    -----------
-    track_id : int
-        The unique ID of the track.
-    bbox : list
-        The bounding box coordinates of the tracked object.
-    class_id : int
-        The class ID of the tracked object.
-    center : tuple
-        The center coordinates of the bounding box.
-    confidence : float
-        The confidence score of the detection.
-    """
-
-    def __init__(self, track_id, bbox, class_id, confidence):
-        """
-        Initializes a Track object with the given parameters.
-
-        Args:
-            track_id (int): The unique ID of the track.
-            bbox (list): The bounding box coordinates of the tracked object.
-            class_id (int): The class ID of the tracked object.
-            confidence (float): The confidence score of the detection.
-        """
-        self.track_id = track_id
-        self.bbox = bbox
-        self.class_id = class_id
-        self.center = self.update_center()
-        self.confidence = round(confidence * 100, 2)
-
-    def update_center(self):
-        """
-        Updates the center point of the bounding box.
-
-        Returns:
-            tuple: The (x, y) coordinates of the center point.
-        """
-        x1, y1, x2, y2 = self.bbox
-        center_x = int((x1 + x2) / 2)
-        center_y = int((y1 + y2) / 2)
-        return center_x, center_y
