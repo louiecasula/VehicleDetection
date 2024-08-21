@@ -71,11 +71,7 @@ class ObjectDetectionApp:
         self.video_path = None
 
         # Mapping class IDs to class labels
-        self.class_labels = {
-            0: "person", 1: "bicycle", 2: "car", 3: "motorcycle",
-            4: "airplane", 5: "bus", 6: "train", 7: "truck",
-            8: "boat", 9: "traffic light", 10: "fire hydrant",
-        }
+        self.class_labels = open("coco.names").read().strip().split('\n')
 
         # Save each detected object to a dictionary
         self.objects = defaultdict(dict)
@@ -137,7 +133,7 @@ class ObjectDetectionApp:
                     x1, y1, x2, y2 = map(int, bbox)
                     track_id = track.track_id
                     class_id = track.class_id
-                    class_label = self.class_labels.get(class_id, "unknown")
+                    class_label = self.class_labels[class_id]
                     center = track.center
                     confidence = track.confidence
 
