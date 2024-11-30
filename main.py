@@ -65,13 +65,15 @@ class ObjectDetectionApp:
         self.quit_button.grid(row=1, column=2, pady=20, padx=20)
 
         # Initialize YOLO model and tracker
-        self.model = YOLO(model="yolov8m.pt")
+        # self.model = YOLO(model="yolov8m.pt")  # base model
+        self.model = YOLO(model="model_data/best.pt")  # custom model
         self.tracker = Tracker()
         self.colors = [(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)) for _ in range(10)]
         self.video_path = None
 
         # Mapping class IDs to class labels
-        self.class_labels = open("coco.names").read().strip().split('\n')
+        # self.class_labels = open("coco.names").read().strip().split('\n')  # base labels
+        self.class_labels = open("class.names").read().strip().split('\n')  # custom labels
 
         # Save each detected object to a dictionary
         self.objects = defaultdict(dict)
