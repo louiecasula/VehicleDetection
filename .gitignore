@@ -96,7 +96,7 @@ Temporary Items
 output/
 
 # YOLO models
-*.pt
+# *.pt
 
 # tkinterdnd2 build files
 tkinterdnd2-master/build/
