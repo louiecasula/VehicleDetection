@@ -6,7 +6,7 @@ This project leverages YOLOv8 for object detection and Deep SORT for object trac
 
 ### Prerequisites
 
-- Python 3.8 or higher
+- Python 3.12
 
 ### Steps
 
