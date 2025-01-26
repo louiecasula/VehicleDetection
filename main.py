@@ -121,7 +121,7 @@ class ObjectDetectionApp:
         frame_idx = 1
 
         while ret:
-            results = self.model(frame)
+            results = self.model(frame, conf=0.5, iou=0.3)
             for result in results:
                 detections = [
                     [int(r[0]), int(r[1]), int(r[2]), int(r[3]), int(r[5]), r[4]]

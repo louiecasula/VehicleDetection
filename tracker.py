@@ -24,7 +24,7 @@ class Tracker:
         Initializes the Tracker with necessary configurations and models.
         """
         max_cosine_distance = 0.4
-        nn_budget = None
+        nn_budget = 150
         encoder_model_filename = 'model_data/mars-small128.pb'
 
         # Create the nearest neighbor distance metric
