@@ -69,7 +69,7 @@ class ObjectDetectionApp:
         self.model = YOLO(model="model_data/best.pt")  # custom model
         self.tracker = Tracker()
         self.colors = [(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)) for _ in range(10)]
-        self.video_path = None
+        self.videos = None
 
         # Mapping class IDs to class labels
         # self.class_labels = open("coco.names").read().strip().split('\n')  # base labels
@@ -80,9 +80,10 @@ class ObjectDetectionApp:
 
     def select_video(self):
         """Select a video file and display its thumbnail."""
-        self.video_path = filedialog.askopenfilename(title="Select Video File", filetypes=[("Video files", "*.mp4;*.avi")])
-        if self.video_path:
-            self.display_video_thumbnail(self.video_path)
+        self.video_idx = 0
+        self.videos = filedialog.askopenfilenames(title="Select Video File", filetypes=[("Video files", "*.mp4;*.avi")])
+        if self.videos:
+            self.display_video_thumbnail(self.videos[0])
 
     def display_video_thumbnail(self, video_path):
         """Display a thumbnail of the selected video on the canvas."""
@@ -106,10 +107,12 @@ class ObjectDetectionApp:
 
     def process_video(self):
         """Process the selected video and perform object detection and tracking."""
-        if not self.video_path:
-            messagebox.showerror("Error", "No video selected")
+        if not self.videos:
+            messagebox.showerror("Error", "No videos selected")
             return
-        self.run_detection(self.video_path)
+        for video in self.videos:
+            self.run_detection(video)
+        self.videos = None
 
     def run_detection(self, video_path):
         """Run YOLO detection and Deep SORT tracking on the video."""
@@ -166,10 +169,11 @@ class ObjectDetectionApp:
         cap.release()
         cv2.destroyAllWindows()
         self.save_to_csv()
+        self.video_idx += 1
 
     def save_to_csv(self):
         """Save detected object data to a CSV file."""
-        title = os.path.splitext(os.path.basename(self.video_path))[0]
+        title = os.path.splitext(os.path.basename(self.videos[self.video_idx]))[0]
         keys = ['track_id', 'object_type', 'coordinates']
         os.makedirs('./output', exist_ok=True)
         with open(f"./output/{title}.csv", 'w', newline='') as out:
@@ -178,7 +182,7 @@ class ObjectDetectionApp:
             dict_writer.writerows(self.objects.values())
 
         """Save detected object data to a formatted CSV file."""
-        title = os.path.splitext(os.path.basename(self.video_path))[0] + "FORMAT"
+        title = os.path.splitext(os.path.basename(self.videos[self.video_idx]))[0] + "FORMAT"
         keys = ['track_id', 'object_type', 'frame', 'x', 'y']
         os.makedirs('./output', exist_ok=True)
         with open(f"./output/{title}.csv", 'w', newline='') as out:
