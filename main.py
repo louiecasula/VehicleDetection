@@ -160,7 +160,7 @@ class ObjectDetectionApp:
                     cv2.circle(frame, center, 5, self.colors[track_id % len(self.colors)], -1)
 
             frame = cv2.resize(frame, (800, 600))
-            cv2.imshow('frame', frame)
+            cv2.imshow(os.path.basename(self.videos[self.video_idx]), frame)
             if cv2.waitKey(25) & 0xFF == ord('q'):
                 break
             ret, frame = cap.read()
