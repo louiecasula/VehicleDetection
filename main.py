@@ -55,10 +55,10 @@ class ObjectDetectionApp:
         self.canvas.grid(row=0, column=0, columnspan=3)
 
         # Buttons for video selection, processing, and quitting
-        self.select_button = tk.Button(self.frame, text="Select Video", command=self.select_video)
+        self.select_button = tk.Button(self.frame, text="Select Video", command=self.select_videos)
         self.select_button.grid(row=1, column=0, pady=20, padx=20)
 
-        self.process_button = tk.Button(self.frame, text="Process Video", command=self.process_video)
+        self.process_button = tk.Button(self.frame, text="Process Video", command=self.process_videos)
         self.process_button.grid(row=1, column=1, pady=20, padx=20)
 
         self.quit_button = tk.Button(self.frame, text="Quit", command=root.quit)
@@ -78,7 +78,7 @@ class ObjectDetectionApp:
         # Save each detected object to a dictionary
         self.objects = defaultdict(dict)
 
-    def select_video(self):
+    def select_videos(self):
         """Select a video file and display its thumbnail."""
         self.video_idx = 0
         self.videos = filedialog.askopenfilenames(title="Select Video File", filetypes=[("Video files", "*.mp4;*.avi")])
@@ -105,7 +105,7 @@ class ObjectDetectionApp:
         self.canvas.create_image(0, 0, anchor=tk.NW, image=imgtk)
         self.canvas.imgtk = imgtk
 
-    def process_video(self):
+    def process_videos(self):
         """Process the selected video and perform object detection and tracking."""
         if not self.videos:
             messagebox.showerror("Error", "No videos selected")
