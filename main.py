@@ -55,25 +55,24 @@ class ObjectDetectionApp:
         self.canvas.grid(row=0, column=0, columnspan=3)
 
         # Buttons for video selection, processing, and quitting
-        self.select_button = tk.Button(self.frame, text="Select Video", command=self.select_videos)
-        self.select_button.grid(row=1, column=0, pady=20, padx=20)
+        self.select_video_button = tk.Button(self.frame, text="Select Videos", command=self.select_videos)
+        self.select_video_button.grid(row=1, column=0, pady=20, padx=20)
+
+        self.select_model_button = tk.Button(self.frame, text="Select Model", command=self.select_model)
+        self.select_model_button.grid(row=1, column=1, pady=20, padx=20)
 
         self.process_button = tk.Button(self.frame, text="Process Video", command=self.process_videos)
-        self.process_button.grid(row=1, column=1, pady=20, padx=20)
-
-        self.quit_button = tk.Button(self.frame, text="Quit", command=root.quit)
-        self.quit_button.grid(row=1, column=2, pady=20, padx=20)
+        self.process_button.grid(row=1, column=2, pady=20, padx=20)
 
         # Initialize YOLO model and tracker
-        # self.model = YOLO(model="yolov8m.pt")  # base model
-        self.model = YOLO(model="model_data/best.pt")  # custom model
+        self.model = "yolov8s"
+        self.yolo = YOLO(model="model_data/yolov8s.pt")  # base model
         self.tracker = Tracker()
         self.colors = [(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)) for _ in range(10)]
         self.videos = None
 
         # Mapping class IDs to class labels
-        # self.class_labels = open("coco.names").read().strip().split('\n')  # base labels
-        self.class_labels = open("class.names").read().strip().split('\n')  # custom labels
+        self.class_labels = open("coco.names").read().strip().split('\n')  # base labels
 
         # Save each detected object to a dictionary
         self.objects = defaultdict(dict)
@@ -84,6 +83,17 @@ class ObjectDetectionApp:
         self.videos = filedialog.askopenfilenames(title="Select Video File", filetypes=[("Video files", "*.mp4;*.avi")])
         if self.videos:
             self.display_video_thumbnail(self.videos[0])
+    
+    def select_model(self):
+        """Select a model"""
+        model = filedialog.askopenfilename(initialdir="model_data", title="Select Model File", filetypes=[("Model files", "*.pt")])
+        self.yolo = YOLO(model = model)
+        self.model = os.path.splitext(os.path.basename(model))[0]
+        if "yolo" in self.model:
+            self.class_labels = open("coco.names").read().strip().split('\n')
+        else:
+            self.class_labels = open("class.names").read().strip().split('\n')
+        print(self.model)
 
     def display_video_thumbnail(self, video_path):
         """Display a thumbnail of the selected video on the canvas."""
@@ -110,7 +120,11 @@ class ObjectDetectionApp:
         if not self.videos:
             messagebox.showerror("Error", "No videos selected")
             return
+        if not self.model:
+            messagebox.showerror("Error", "No model selected")
+            return
         for video in self.videos:
+            print(os.path.basename(video))
             self.run_detection(video)
         self.videos = None
 
@@ -124,7 +138,7 @@ class ObjectDetectionApp:
         frame_idx = 1
 
         while ret:
-            results = self.model(frame, conf=0.5, iou=0.3)
+            results = self.yolo(frame, conf=0.5, iou=0.3)
             for result in results:
                 detections = [
                     [int(r[0]), int(r[1]), int(r[2]), int(r[3]), int(r[5]), r[4]]
